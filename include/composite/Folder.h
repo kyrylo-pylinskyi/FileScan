@@ -7,13 +7,15 @@
 #include <list>
 #include "Component.h"
 
-class Folder : Component {
+class Folder : public Component {
 protected:
     std::list<Component*> _children;
 
 public:
     void Add(Component* component) override;
     void Remove(Component *component) override;
+
+    bool IsComposite() const override { return true; }
 
     void Read() const override;
 };

@@ -5,7 +5,6 @@ set(CMAKE_CXX_STANDARD 23)
 
 set(SOURCES
         src/composite/Folder.cpp
-        src/composite/Component.cpp
         src/composite/File.cpp
         main.cpp
 )

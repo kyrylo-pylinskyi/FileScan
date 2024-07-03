@@ -6,7 +6,7 @@
 #define FILE_H
 #include "Component.h"
 
-class File : Component {
+class File : public Component {
     void Read() const override;
 };
 

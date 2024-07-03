@@ -14,8 +14,8 @@ public:
     void SetParrent(Component* parrent) { _parrent = parrent; }
     Component* GetParrent() const { return _parrent; }
 
-    virtual void Add(Component* component) = 0;
-    virtual void Remove(Component* component) = 0;
+    virtual void Add(Component* component) {};
+    virtual void Remove(Component* component) {};
 
     virtual bool IsComposite() const { return false; }
     virtual void Read() const = 0;

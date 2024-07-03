@@ -5,38 +5,56 @@
 #include "composite/Folder.h"
 
 #include <thread>
-#include <vector>
+#include <composite/File.h>
 
-namespace std {
-    class thread;
+Folder::Folder(const fs::path& path) : Component(path) {
+    if(!is_directory(_path)) {
+        throw std::invalid_argument("Invalid path type: " + _path.string());
+    }
 }
 
-void Folder::Add(Component* component) {
+void Folder::LoadContents() {
+    for(const auto& entry: fs::directory_iterator(_path)) {
+        if(entry.is_directory()) {
+            auto folder = std::make_shared<Folder>(entry.path());
+            this->AddChild(folder);
+            folder->LoadContents();
+        }
+        else
+            this->AddChild(std::make_shared<File>(entry.path()));
+    }
+}
+
+void Folder::AddChild(std::shared_ptr<Component> component) {
     if (!component) return;
 
+    std::lock_guard lock(_mutex);
+
+    component->SetParrent(shared_from_this());
     _children.push_back(component);
-    component->SetParrent(this);
 }
 
-void Folder::Remove(Component *component) {
-    if (!component) return;
-
-    _children.remove(component);
-    component->SetParrent(nullptr);
-}
-
-void Folder::Read() const {
+void Folder::Search(std::string &searchString, std::vector<std::string> &results) const {
     std::vector<std::thread> threads;
+    std::vector<std::vector<std::string>> partialResults(_children.size());
 
-    for(const Component* c: _children) {
-        auto readOperation = [c]() {
-            c->Read();
-        };
-        threads.emplace_back(std::thread(readOperation));
-    }
+    {
+        std::lock_guard lock(_mutex);
+        int index = 0;
 
-    for(std::thread& t: threads) {
-        t.join();
+        for(const auto& child: _children) {
+            threads.emplace_back([&, index] {
+                child->Search(searchString, partialResults[index]);
+            });
+            ++index;
+        }
+
+        for(auto& thread: threads) {
+            thread.join();
+        }
+
+        for(const auto& partialResult: partialResults) {
+            results.insert(results.end(), partialResult.begin(), partialResult.end());
+        }
     }
 }
-

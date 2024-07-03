@@ -7,7 +7,10 @@
 #include "Component.h"
 
 class File : public Component {
-    void Read() const override;
+public:
+    explicit File(const fs::path& path);
+
+    void Search(std::string &searchString, std::vector<std::string> &results) const override;
 };
 
 #endif //FILE_H

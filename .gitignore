@@ -77,3 +77,6 @@ fabric.properties
 
 #Cmake build debug
 cmake-build-debug
+
+# test data files
+data

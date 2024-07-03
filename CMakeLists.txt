@@ -7,6 +7,8 @@ set(SOURCES
         src/composite/Folder.cpp
         src/composite/File.cpp
         main.cpp
+        include/Scaner.h
+        src/Scaner.cpp
 )
 
 add_executable(FileScan ${SOURCES})

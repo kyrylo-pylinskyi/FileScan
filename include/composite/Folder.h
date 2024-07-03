@@ -5,19 +5,30 @@
 #ifndef FOLDER_H
 #define FOLDER_H
 #include <list>
+#include <mutex>
+#include <string>
+
 #include "Component.h"
 
-class Folder : public Component {
+namespace fs = std::filesystem;
+
+class Folder : public Component, public std::enable_shared_from_this<Folder> {
+private:
+    mutable std::mutex _mutex;
+
+    void AddChild(std::shared_ptr<Component> component);
+
 protected:
-    std::list<Component*> _children;
+    std::list<std::shared_ptr<Component>> _children;
 
 public:
-    void Add(Component* component) override;
-    void Remove(Component *component) override;
+    Folder(const fs::path& path);
 
     bool IsComposite() const override { return true; }
 
     void Read() const override;
+
+    void LoadContents();
 };
 
 

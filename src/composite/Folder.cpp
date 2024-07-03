@@ -6,37 +6,51 @@
 
 #include <thread>
 #include <vector>
+#include <filesystem>
+#include <composite/File.h>
 
-namespace std {
-    class thread;
+Folder::Folder(const fs::path& path) : Component(path) {
+    if(!is_directory(_path)) {
+        throw std::invalid_argument("Path is not a directory: " + _path.string());
+    }
 }
 
-void Folder::Add(Component* component) {
+void Folder::LoadContents() {
+    for(const auto& entry: fs::directory_iterator(_path)) {
+        if(entry.is_directory()) {
+            auto folder = std::make_shared<Folder>(entry.path());
+            this->AddChild(folder);
+            folder->LoadContents();
+        }
+        else
+            this->AddChild(std::make_shared<File>(entry.path()));
+    }
+}
+
+void Folder::AddChild(std::shared_ptr<Component> component) {
     if (!component) return;
 
+    std::lock_guard lock(_mutex);
+    auto p = shared_from_this();
+
+    component->SetParrent(p);
     _children.push_back(component);
-    component->SetParrent(this);
-}
-
-void Folder::Remove(Component *component) {
-    if (!component) return;
-
-    _children.remove(component);
-    component->SetParrent(nullptr);
 }
 
 void Folder::Read() const {
     std::vector<std::thread> threads;
 
-    for(const Component* c: _children) {
-        auto readOperation = [c]() {
-            c->Read();
-        };
-        threads.emplace_back(std::thread(readOperation));
+    {
+        std::lock_guard lock(_mutex);
+        for (const auto& child : _children) {
+            auto readOperation = [child] () {
+                child->Read();
+            };
+            threads.emplace_back(readOperation);
+        }
     }
 
-    for(std::thread& t: threads) {
+    for (std::thread& t : threads) {
         t.join();
     }
 }
-

@@ -7,6 +7,8 @@
 #include "Component.h"
 
 class File : public Component {
+public:
+    File(const fs::path& path) : Component(path) {}
     void Read() const override;
 };
 

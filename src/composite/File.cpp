@@ -5,9 +5,23 @@
 #include "composite/File.h"
 
 #include <cstdio>
+#include <fstream>
 #include <thread>
 
 
 void File::Read() const {
-    printf("File Read thread_id: %zu\n", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+    std::string content;
+    auto filepath = GetPath();
+
+    std::ifstream file(filepath);
+    if (!file.is_open()) {
+        throw std::runtime_error("Failed to open file: " + filepath.string());
+    }
+
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    file.close();
+
+    printf("File:\t<%s>\n", filepath.string().c_str());
+    printf("Content:\n%s", buffer.str().c_str());
 }

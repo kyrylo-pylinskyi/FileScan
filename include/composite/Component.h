@@ -4,21 +4,28 @@
 
 #ifndef COMPONENT_H
 #define COMPONENT_H
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 class Component {
 protected:
-    Component* _parrent;
+    fs::path _path;
+    std::shared_ptr<Component> _parrent;
+
 public:
+    Component(const fs::path& path) : _path(path) {}
     virtual ~Component() = default;
 
-    void SetParrent(Component* parrent) { _parrent = parrent; }
-    Component* GetParrent() const { return _parrent; }
-
-    virtual void Add(Component* component) {};
-    virtual void Remove(Component* component) {};
+    void SetParrent(std::shared_ptr<Component> parrent) {
+        _parrent = parrent;
+    }
+    std::shared_ptr<Component> GetParrent() const { return _parrent; }
 
     virtual bool IsComposite() const { return false; }
     virtual void Read() const = 0;
+
+    virtual fs::path GetPath() const { return _path; }
 };
 
 #endif //COMPONENT_H

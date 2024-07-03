@@ -5,6 +5,7 @@
 #ifndef COMPONENT_H
 #define COMPONENT_H
 #include <filesystem>
+#include <vector>
 
 namespace fs = std::filesystem;
 
@@ -23,7 +24,8 @@ public:
     std::shared_ptr<Component> GetParrent() const { return _parrent; }
 
     virtual bool IsComposite() const { return false; }
-    virtual void Read() const = 0;
+
+    virtual void Search(std::string &searchString, std::vector<std::string> &results) const = 0;
 
     virtual fs::path GetPath() const { return _path; }
 };

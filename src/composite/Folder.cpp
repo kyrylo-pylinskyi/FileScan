@@ -5,13 +5,11 @@
 #include "composite/Folder.h"
 
 #include <thread>
-#include <vector>
-#include <filesystem>
 #include <composite/File.h>
 
 Folder::Folder(const fs::path& path) : Component(path) {
     if(!is_directory(_path)) {
-        throw std::invalid_argument("Path is not a directory: " + _path.string());
+        throw std::invalid_argument("Invalid path type: " + _path.string());
     }
 }
 
@@ -31,26 +29,32 @@ void Folder::AddChild(std::shared_ptr<Component> component) {
     if (!component) return;
 
     std::lock_guard lock(_mutex);
-    auto p = shared_from_this();
 
-    component->SetParrent(p);
+    component->SetParrent(shared_from_this());
     _children.push_back(component);
 }
 
-void Folder::Read() const {
+void Folder::Search(std::string &searchString, std::vector<std::string> &results) const {
     std::vector<std::thread> threads;
+    std::vector<std::vector<std::string>> partialResults(_children.size());
 
     {
         std::lock_guard lock(_mutex);
-        for (const auto& child : _children) {
-            auto readOperation = [child] () {
-                child->Read();
-            };
-            threads.emplace_back(readOperation);
-        }
-    }
+        int index = 0;
 
-    for (std::thread& t : threads) {
-        t.join();
+        for(const auto& child: _children) {
+            threads.emplace_back([&, index] {
+                child->Search(searchString, partialResults[index]);
+            });
+            ++index;
+        }
+
+        for(auto& thread: threads) {
+            thread.join();
+        }
+
+        for(const auto& partialResult: partialResults) {
+            results.insert(results.end(), partialResult.begin(), partialResult.end());
+        }
     }
 }

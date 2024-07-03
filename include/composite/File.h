@@ -8,8 +8,9 @@
 
 class File : public Component {
 public:
-    File(const fs::path& path) : Component(path) {}
-    void Read() const override;
+    explicit File(const fs::path& path);
+
+    void Search(std::string &searchString, std::vector<std::string> &results) const override;
 };
 
 #endif //FILE_H
